@@ -1,0 +1,11 @@
+**/bin
+**/obj
+**/.vs
+**/.vscode
+**/node_modules
+**/dist
+artifacts
+.codex-runtime
+.git
+*.user
+*.suo

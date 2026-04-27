@@ -1,0 +1,17 @@
+# .gitignore for .NET and Angular
+
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Angular
+node_modules/
+dist/
+.angular/
+*.log
+
+# Railway
+.railway/

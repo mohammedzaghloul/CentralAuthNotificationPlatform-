@@ -1,0 +1,71 @@
+@CentralAuthNotificationPlatform_HostAddress = http://localhost:5045
+@AccessToken = paste_jwt_here
+@ApiKey = paste_api_key_here
+@NotificationId = paste_notification_id_here
+
+### Register user
+POST {{CentralAuthNotificationPlatform_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "demo@example.com",
+  "displayName": "Demo User",
+  "password": "Demo@12345"
+}
+
+### Login user
+POST {{CentralAuthNotificationPlatform_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo@example.com",
+  "password": "Demo@12345"
+}
+
+### Create external app
+POST {{CentralAuthNotificationPlatform_HostAddress}}/api/external-apps
+Authorization: Bearer {{AccessToken}}
+Content-Type: application/json
+
+{
+  "name": "School Portal",
+  "redirectUri": "https://school.example.com/callback"
+}
+
+### External app forgot password
+POST {{CentralAuthNotificationPlatform_HostAddress}}/api/auth/forgot-password
+X-API-Key: {{ApiKey}}
+Content-Type: application/json
+
+{
+  "email": "demo@example.com",
+  "resetUrlBase": "https://school.example.com/reset-password"
+}
+
+### OAuth authorize
+GET {{CentralAuthNotificationPlatform_HostAddress}}/connect/authorize?response_type=code&client_id=paste_client_id_here&redirect_uri=https%3A%2F%2Fschool.example.com%2Fcallback&scope=openid%20profile%20email&state=abc
+
+### OAuth token
+POST {{CentralAuthNotificationPlatform_HostAddress}}/connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&code=paste_code_here&redirect_uri=https%3A%2F%2Fschool.example.com%2Fcallback&client_id=paste_client_id_here&client_secret=paste_client_secret_here
+
+### User inbox
+GET {{CentralAuthNotificationPlatform_HostAddress}}/api/notifications
+Authorization: Bearer {{AccessToken}}
+Accept: application/json
+
+### Mark notification as read
+PATCH {{CentralAuthNotificationPlatform_HostAddress}}/api/notifications/{{NotificationId}}/read
+Authorization: Bearer {{AccessToken}}
+Accept: application/json
+
+### Mark notifications as read
+POST {{CentralAuthNotificationPlatform_HostAddress}}/api/notifications/read
+Authorization: Bearer {{AccessToken}}
+Content-Type: application/json
+
+{
+  "notificationIds": ["{{NotificationId}}"]
+}

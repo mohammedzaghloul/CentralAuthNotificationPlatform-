@@ -1,0 +1,92 @@
+
+> central-auth-dashboard@1.0.0 start
+> ng serve --host 0.0.0.0 --port 4300
+
+Initial chunk files | Names         |  Raw size
+styles.css          | styles        | 351.79 kB | 
+polyfills.js        | polyfills     |  88.09 kB | 
+main.js             | main          |  71.42 kB | 
+
+                    | Initial total | 511.31 kB
+
+Application bundle generation complete. [2.794 seconds]
+
+Watch mode enabled. Watching for file changes...
+  ➜  Local:   http://localhost:4300/dashboard
+  ➜  Network: http://192.168.1.2:4300/dashboard
+Initial chunk files | Names | Raw size
+main.js             | main  | 71.63 kB | 
+
+Application bundle generation complete. [0.835 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names | Raw size
+main.js             | main  | 71.70 kB | 
+
+Application bundle generation complete. [0.763 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names | Raw size
+main.js             | main  | 72.50 kB | 
+
+Application bundle generation complete. [0.442 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names | Raw size
+main.js             | main  | 72.87 kB | 
+
+Application bundle generation complete. [0.435 seconds]
+
+Page reload sent to client(s).
+Application bundle generation failed. [5.651 seconds]
+
+Application bundle generation failed. [1.994 seconds]
+
+Application bundle generation failed. [1.465 seconds]
+
+Initial chunk files | Names         |  Raw size
+styles.css          | styles        | 351.79 kB | 
+polyfills.js        | polyfills     |  88.09 kB | 
+main.js             | main          |  72.96 kB | 
+
+                    | Initial total | 512.85 kB
+
+Application bundle generation complete. [1.663 seconds]
+
+Page reload sent to client(s).
+Application bundle generation failed. [1.749 seconds]
+
+Initial chunk files | Names         |  Raw size
+styles.css          | styles        | 351.79 kB | 
+polyfills.js        | polyfills     |  88.09 kB | 
+main.js             | main          |  73.82 kB | 
+
+                    | Initial total | 513.70 kB
+
+Application bundle generation complete. [1.195 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names | Raw size
+main.js             | main  | 74.15 kB | 
+
+Application bundle generation complete. [1.246 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names | Raw size
+main.js             | main  | 79.13 kB | 
+
+Application bundle generation complete. [1.762 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names | Raw size
+main.js             | main  | 84.45 kB | 
+
+Application bundle generation complete. [1.705 seconds]
+
+Page reload sent to client(s).
+Initial chunk files | Names | Raw size
+main.js             | main  | 85.44 kB | 
+
+Application bundle generation complete. [2.140 seconds]
+
+Page reload sent to client(s).

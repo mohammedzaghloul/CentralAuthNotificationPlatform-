@@ -1,0 +1,67 @@
+
+Warning: This is a simple server for use in testing or debugging Angular applications
+locally. It hasn't been reviewed for security issues.
+
+Binding this server to an open connection can result in compromising your application or
+computer. Using a different host than the one passed to the "--host" flag might result in
+websocket connection issues. You might need to use "--disable-host-check" if that's the
+case.
+    
+- Building...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2322: Type 'EnvironmentProviders' is not assignable to type 'Provider'. [plugin angular-compiler]
+
+    src/app/app.component.ts:25:14:
+      25 │   providers: [provideHttpClient()],
+         ╵               ~~~~~~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2322: Type 'EnvironmentProviders' is not assignable to type 'Provider'. [plugin angular-compiler]
+
+    src/app/app.component.ts:25:14:
+      25 │   providers: [provideHttpClient()],
+         ╵               ~~~~~~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2304: Cannot find name 'provideHttpClient'. [plugin angular-compiler]
+
+    src/app/app.component.ts:25:14:
+      25 │   providers: [provideHttpClient()],
+         ╵               ~~~~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+X [ERROR] TS2339: Property 'forgotPassword' does not exist on type 'AuthHubService'. [plugin angular-compiler]
+
+    src/app/app.component.ts:105:21:
+      105 │       await this.api.forgotPassword(this.forgotPasswordForm.email);
+          ╵                      ~~~~~~~~~~~~~~
+
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+
+- Changes detected. Rebuilding...
+

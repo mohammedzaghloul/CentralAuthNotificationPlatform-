@@ -1,0 +1,8 @@
+bin/
+obj/
+*.log
+*.user
+.env
+.env.local
+.env.*.local
+appsettings.Production.json

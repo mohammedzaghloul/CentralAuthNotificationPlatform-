@@ -1,0 +1,27 @@
+{
+  "name": "central-auth-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "ng build",
+    "start": "ng serve --host 0.0.0.0 --port 4300"
+  },
+  "dependencies": {
+    "@angular/animations": "^21.2.10",
+    "@angular/common": "^21.2.10",
+    "@angular/compiler": "^21.2.10",
+    "@angular/core": "^21.2.10",
+    "@angular/forms": "^21.2.10",
+    "@angular/platform-browser": "^21.2.10",
+    "postcss": "^8.5.12",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.6.0",
+    "zone.js": "^0.16.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^21.2.8",
+    "@angular/cli": "^21.2.8",
+    "@angular/compiler-cli": "^21.2.10",
+    "typescript": "~5.9.3"
+  }
+}

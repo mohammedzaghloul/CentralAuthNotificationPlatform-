@@ -1,0 +1,94 @@
+{
+  "$schema": "../../node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "projects": {
+    "central-auth-dashboard": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "auth",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": {
+              "base": "dist/central-auth-dashboard",
+              "browser": ""
+            },
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "runtime-config.js",
+                "input": "src/assets",
+                "output": "."
+              }
+            ],
+            "styles": [
+              "src/assets/adminlte/adminlte.rtl.min.css",
+              "src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "800kb",
+                  "maximumError": "1200kb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "16kb",
+                  "maximumError": "32kb"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "buildTarget": "central-auth-dashboard:build:development",
+            "proxyConfig": "proxy.conf.json",
+            "servePath": "/dashboard"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "central-auth-dashboard:build:production",
+              "proxyConfig": "proxy.conf.json",
+              "servePath": "/dashboard"
+            },
+            "development": {
+              "buildTarget": "central-auth-dashboard:build:development",
+              "proxyConfig": "proxy.conf.json",
+              "servePath": "/dashboard"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  }
+}

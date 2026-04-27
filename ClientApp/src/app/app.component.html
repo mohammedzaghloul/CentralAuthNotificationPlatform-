@@ -1,0 +1,437 @@
+<!-- For consent page, show without layout -->
+<app-consent *ngIf="isConsentRoute"></app-consent>
+
+<!-- For regular pages -->
+<ng-container *ngIf="!isConsentRoute && !session; else dashboardLayout">
+  <main class="login-page" dir="rtl">
+    <div class="auth-container animate-fade-in">
+      <div class="auth-brand">
+        <div class="auth-brand-inner">
+          <div class="brand-icon">IDP</div>
+          <div class="brand-text">
+            <h1>بوابة الدخول الموحد</h1>
+            <p>نظام إدارة الهوية المدرسية والتنبيهات الذكية</p>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="alert" class="alert mb-4 shadow-sm border-0 animate-fade-in" 
+           [class.alert-success]="alert.kind === 'success'"
+           [class.alert-danger]="alert.kind === 'danger'" 
+           [class.alert-info]="alert.kind === 'info'"
+           [class.alert-warning]="alert.kind === 'warning'" role="status">
+        <i class="fas" [class.fa-check-circle]="alert.kind === 'success'" 
+           [class.fa-exclamation-triangle]="alert.kind === 'danger'"
+           [class.fa-info-circle]="alert.kind === 'info'"></i>
+        {{ alert.message }}
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button type="button" [class.active]="authMode === 'login'" (click)="authMode = 'login'">
+            <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+          </button>
+          <button type="button" [class.active]="authMode === 'register'" (click)="authMode = 'register'">
+            <i class="fas fa-user-plus"></i> حساب جديد
+          </button>
+        </div>
+
+          <form *ngIf="authMode === 'login'" class="form-stack" (ngSubmit)="login(loginNgForm)" #loginNgForm="ngForm">
+            <div class="mb-4">
+              <label class="form-label small fw-bold" for="loginEmail">البريد الإلكتروني</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                <input id="loginEmail" class="form-control" name="email" type="email" autocomplete="email"
+                  email #loginEmailModel="ngModel" [class.is-invalid]="loginEmailModel.invalid && (loginEmailModel.touched || loginNgForm.submitted)"
+                  required [(ngModel)]="loginForm.email" placeholder="example@school.edu.eg">
+              </div>
+              <div class="field-error" *ngIf="loginEmailModel.invalid && (loginEmailModel.touched || loginNgForm.submitted)">اكتب بريدًا إلكترونيًا صحيحًا.</div>
+            </div>
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-bold mb-0" for="loginPassword">كلمة المرور</label>
+                <button type="button" class="forgot-link" (click)="showForgotPassword = true">نسيت كلمة المرور؟</button>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                <input id="loginPassword" class="form-control" name="password" type="password"
+                  autocomplete="current-password" required [(ngModel)]="loginForm.password" placeholder="••••••••">
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit" [disabled]="loading || loginNgForm.invalid">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+              <i class="fas fa-sign-in-alt" *ngIf="!loading"></i>
+              {{ loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول' }}
+            </button>
+          </form>
+
+          <form *ngIf="authMode === 'register'" class="form-stack" (ngSubmit)="register(regNgForm)" #regNgForm="ngForm">
+            <div class="mb-4">
+              <label class="form-label small fw-bold" for="regName">الاسم الكامل</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input id="regName" class="form-control" name="displayName" type="text"
+                  autocomplete="name" required [(ngModel)]="registerForm.displayName" placeholder="محمد أحمد">
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label small fw-bold" for="regEmail">البريد الإلكتروني</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                <input id="regEmail" class="form-control" name="email" type="email"
+                  autocomplete="email" email #regEmailModel="ngModel" [class.is-invalid]="regEmailModel.invalid && (regEmailModel.touched || regNgForm.submitted)"
+                  required [(ngModel)]="registerForm.email" placeholder="example@school.edu.eg">
+              </div>
+              <div class="field-error" *ngIf="regEmailModel.invalid && (regEmailModel.touched || regNgForm.submitted)">اكتب بريدًا إلكترونيًا صحيحًا.</div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label small fw-bold" for="regPassword">كلمة المرور</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                <input id="regPassword" class="form-control" name="password" type="password"
+                  autocomplete="new-password" required [(ngModel)]="registerForm.password" placeholder="••••••••">
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label small fw-bold" for="regRole">نوع الحساب</label>
+              <select id="regRole" class="form-select" name="role" [(ngModel)]="registerForm.role">
+                <option value="User">مستخدم عادي</option>
+                <option value="Developer">مطور (Developer)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" type="submit" [disabled]="loading || regNgForm.invalid">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+              <i class="fas fa-user-plus" *ngIf="!loading"></i>
+              {{ loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب' }}
+            </button>
+          </form>
+
+          <div class="auth-footer">
+            &copy; 2026 منصة الدخول الموحد
+          </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Forgot Password Modal -->
+  <div class="modal fade" tabindex="-1" [class.show]="showForgotPassword" [style.display]="showForgotPassword ? 'block' : 'none'" *ngIf="showForgotPassword">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">استعادة كلمة المرور</h5>
+          <button type="button" class="btn-close" (click)="showForgotPassword = false"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-4">أدخل بريدك الإلكتروني وسنرسل لك رابطًا لاستعادة كلمة المرور.</p>
+          <form (ngSubmit)="forgotPassword(forgotNgForm)" #forgotNgForm="ngForm">
+            <div class="mb-3">
+              <label class="form-label small fw-bold" for="forgotEmail">البريد الإلكتروني</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                <input id="forgotEmail" class="form-control" name="email" type="email"
+                  email #forgotEmailModel="ngModel" [class.is-invalid]="forgotEmailModel.invalid && (forgotEmailModel.touched || forgotNgForm.submitted)"
+                  required [(ngModel)]="forgotPasswordForm.email" placeholder="example@school.edu.eg">
+              </div>
+              <div class="field-error" *ngIf="forgotEmailModel.invalid && (forgotEmailModel.touched || forgotNgForm.submitted)">اكتب بريدًا إلكترونيًا صحيحًا.</div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary" type="submit" [disabled]="loading || forgotNgForm.invalid">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+                {{ loading ? 'جاري الإرسال...' : 'إرسال رابط الاستعادة' }}
+              </button>
+              <button type="button" class="btn btn-secondary" (click)="showForgotPassword = false">إلغاء</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #dashboardLayout>
+  <ng-container *ngIf="session as activeSession">
+    <div class="app-shell" [class.sidebar-open]="sidebarOpen" dir="rtl">
+      <!-- Sidebar -->
+      <aside class="app-sidebar shadow-sm">
+        <div class="sidebar-brand">
+          <a class="d-flex align-items-center gap-2 text-decoration-none" href="/dashboard/">
+            <span class="brand-badge small">IDP</span>
+            <span class="fw-bold text-main">هوية المدرسة</span>
+          </a>
+        </div>
+
+        <div class="sidebar-user-panel">
+          <div class="user-avatar shadow-sm">{{ activeSession.displayName.slice(0, 1) }}</div>
+          <div class="user-info overflow-hidden">
+            <h6 class="mb-0 text-truncate fw-bold">{{ activeSession.displayName }}</h6>
+            <p class="mb-0 text-truncate text-muted small">{{ activeSession.email }}</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <button class="nav-link" type="button" (click)="setDashboardMode('user'); sidebarOpen = false"
+            [class.active]="dashboardMode === 'user'">
+            <i class="fas fa-bell"></i>
+            <span>مركز التنبيهات</span>
+            <span class="badge badge-soft-primary ms-auto" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+          </button>
+          
+          <button class="nav-link" type="button" *ngIf="isDeveloper" (click)="setDashboardMode('developer'); sidebarOpen = false"
+            [class.active]="dashboardMode === 'developer'">
+            <i class="fas fa-cube"></i>
+            <span>إدارة الأنظمة المتصلة</span>
+            <span class="badge badge-soft-primary ms-auto" *ngIf="externalApps.length > 0">{{ externalApps.length }}</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="btn btn-danger w-100 btn-sm" (click)="signOut()">
+            <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Wrapper -->
+      <div class="app-wrapper">
+        <header class="app-header d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-link p-0 text-main d-md-none" (click)="sidebarOpen = !sidebarOpen">
+              <i class="fas fa-bars fa-lg"></i>
+            </button>
+            <h5 class="mb-0 fw-bold">
+              {{ dashboardMode === 'developer' ? 'لوحة التحكم التقنية' : 'مركز التنبيهات والرسائل' }}
+            </h5>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn-refresh" (click)="refreshAll()" [disabled]="refreshing">
+              <i class="fas fa-sync-alt" [class.fa-spin]="refreshing"></i>
+              <span class="d-none d-sm-inline">{{ refreshing ? 'جاري التحديث' : 'تحديث البيانات' }}</span>
+            </button>
+          </div>
+        </header>
+
+        <main class="app-main animate-fade-in">
+          <div class="container-fluid">
+            <div *ngIf="alert" class="alert mb-4 shadow-sm border-0 animate-fade-in" 
+                 [class.alert-success]="alert.kind === 'success'"
+                 [class.alert-danger]="alert.kind === 'danger'" role="status">
+              <i class="fas" [class.fa-check-circle]="alert.kind === 'success'" 
+                 [class.fa-exclamation-circle]="alert.kind === 'danger'"></i>
+              {{ alert.message }}
+            </div>
+
+            <!-- User Notifications View -->
+            <section *ngIf="dashboardMode === 'user'">
+              <div class="row g-4 mb-4">
+                <div class="col-12 col-md-4">
+                  <div class="small-box stat-primary">
+                    <div class="small-box-inner">
+                      <h3>{{ notifications.length }}</h3>
+                      <p>إجمالي الإشعارات</p>
+                    </div>
+                    <i class="fas fa-envelope-open-text small-box-icon"></i>
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <div class="small-box stat-warning">
+                    <div class="small-box-inner">
+                      <h3>{{ unreadCount }}</h3>
+                      <p>إشعارات غير مقروءة</p>
+                    </div>
+                    <i class="fas fa-exclamation-circle small-box-icon"></i>
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <div class="small-box stat-success">
+                    <div class="small-box-inner">
+                      <h3>{{ userLinks.length }}</h3>
+                      <p>تطبيقات مرتبطة</p>
+                    </div>
+                    <i class="fas fa-link small-box-icon"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-4">
+                <div class="col-12 col-xl-8">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-header-premium">
+                      <span class="section-title">آخر التنبيهات المدرسية</span>
+                    </div>
+                    <div class="card-body p-0">
+                      <div *ngIf="notifications.length === 0" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>لا توجد إشعارات حاليًا</p>
+                      </div>
+
+                      <div class="timeline-list p-3" *ngIf="notifications.length > 0">
+                        <article class="timeline-item animate-fade-in" *ngFor="let item of notifications" [class.unread]="!item.isRead">
+                          <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold mb-0">{{ item.title }}</h6>
+                            <span [class.timeline-badge-read]="item.isRead"
+                                  [class.timeline-badge-new]="!item.isRead">{{ item.isRead ? 'مقروء' : 'جديد' }}</span>
+                          </div>
+                          <p class="text-main small mb-3">{{ resetSummary(item.message) }}</p>
+                          <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted"><i class="far fa-clock me-1"></i> {{ item.createdAt | date:'medium' }}</small>
+                            <div class="action-buttons gap-2 d-flex">
+                              <a *ngIf="resetUrl(item.message) as url" class="btn btn-primary btn-sm" [href]="url">فتح الرابط</a>
+                              <button *ngIf="!item.isRead" class="btn btn-light border btn-sm" (click)="markRead(item)">تحديد كمقروء</button>
+                            </div>
+                          </div>
+                        </article>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-xl-4">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-header-premium">
+                      <span class="section-title">تطبيقاتك المرتبطة</span>
+                    </div>
+                    <div class="card-body">
+                      <div *ngIf="userLinks.length === 0" class="empty-state">
+                        <i class="fas fa-link"></i>
+                        <p>لم يتم ربط أي تطبيقات بعد</p>
+                      </div>
+
+                      <div class="linked-list" *ngIf="userLinks.length > 0">
+                        <div class="linked-item" *ngFor="let link of userLinks">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                              <h6 class="fw-bold mb-0">{{ link.externalAppName }}</h6>
+                              <small class="text-muted">{{ link.externalUserId }}</small>
+                            </div>
+                            <button class="btn btn-link text-danger btn-sm p-0" (click)="unlinkUserLink(link)">
+                              <i class="fas fa-trash-alt"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Developer Management View -->
+            <section *ngIf="dashboardMode === 'developer' && isDeveloper">
+              <div class="row g-4">
+                <div class="col-12 col-xl-4">
+                  <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header-premium">
+                      <span class="section-title">إضافة تطبيق جديد</span>
+                    </div>
+                    <div class="card-body">
+                      <form class="form-stack" (ngSubmit)="createExternalApp()" #appNgForm="ngForm">
+                        <div class="mb-3">
+                          <label class="form-label small fw-bold">اسم النظام</label>
+                          <input class="form-control" name="name" type="text" required [(ngModel)]="appForm.name" placeholder="مثال: School Management">
+                          <small class="text-muted">اسم التطبيق اللي هيظهر للمستخدمين</small>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label small fw-bold">الدومين</label>
+                          <input class="form-control" name="domain" type="text" required [(ngModel)]="appForm.domain" placeholder="localhost">
+                          <small class="text-muted">اسم الدومين فقط بدون http وبدون رقم البورت (مثال: localhost أو school.edu.eg)</small>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label small fw-bold">رابط الرجوع (Callback)</label>
+                          <input class="form-control" name="redirectUri" type="url" required [(ngModel)]="appForm.redirectUri" placeholder="http://localhost:4200/auth/connect/callback">
+                          <small class="text-muted">الرابط اللي هيرجع عليه المستخدم بعد الربط</small>
+                        </div>
+                        <button class="btn btn-primary w-100" type="submit" [disabled]="loading || appNgForm.invalid">
+                          إنشاء بيانات الربط
+                        </button>
+                      </form>
+
+                      <div *ngIf="createdApp" class="mt-4 p-3 bg-warning-subtle rounded border border-warning">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-key me-2"></i> انسخ البيانات السرية</h6>
+                        <div class="mb-2">
+                          <small class="text-muted d-block">Client ID</small>
+                          <code class="d-block p-2 bg-white rounded border mt-1">{{ createdApp.clientId }}</code>
+                        </div>
+                        <div class="mb-2">
+                          <small class="text-muted d-block">Client Secret</small>
+                          <code class="d-block p-2 bg-white rounded border mt-1">{{ createdApp.clientSecret }}</code>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-xl-8">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-header-premium">
+                      <span class="section-title">تطبيقاتك المسجلة</span>
+                      <span class="badge badge-soft-primary">{{ externalApps.length }} تطبيق</span>
+                    </div>
+                    <div class="card-body p-0">
+                      <div *ngIf="externalApps.length === 0" class="empty-state">
+                        <i class="fas fa-cube"></i>
+                        <p>لا توجد تطبيقات مسجلة حاليًا</p>
+                      </div>
+
+                      <div class="app-list p-3" *ngIf="externalApps.length > 0">
+                        <div class="app-item" *ngFor="let app of externalApps">
+                          <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">{{ app.name }}</h6>
+                            <span class="badge badge-soft-success">فعال</span>
+                          </div>
+                          <div class="detail-grid mb-3">
+                            <div><span>الدومين</span><code>{{ app.domain }}</code></div>
+                            <div><span>معرف العميل</span><code>{{ app.clientId }}</code></div>
+                            <div><span>API Key</span><code>{{ app.apiKeyPreview }}</code></div>
+                          </div>
+                          <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm" (click)="regenerateApiKey(app)">توليد مفتاح جديد</button>
+                            <button class="btn btn-outline-danger btn-sm" (click)="revokeApiKey(app)" [disabled]="!app.isApiKeyActive">إلغاء المفتاح</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Audit Logs Section -->
+              <div class="row g-4 mt-2">
+                <div class="col-12">
+                  <div class="card border-0 shadow-sm">
+                    <div class="card-header-premium">
+                      <span class="section-title">سجل الأنشطة</span>
+                      <span class="badge badge-soft-primary">{{ auditLogs.length }} نشاط</span>
+                    </div>
+                    <div class="card-body p-0">
+                      <div *ngIf="auditLogs.length === 0" class="empty-state">
+                        <i class="fas fa-history"></i>
+                        <p>لا توجد أنشطة مسجلة حاليًا</p>
+                      </div>
+
+                      <div class="audit-list p-3" *ngIf="auditLogs.length > 0">
+                        <div class="audit-item" *ngFor="let log of auditLogs">
+                          <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold mb-0">{{ actionLabel(log.action) }}</h6>
+                            <small class="text-muted"><i class="far fa-clock me-1"></i> {{ log.createdAt | date:'medium' }}</small>
+                          </div>
+                          <div class="detail-grid mb-2">
+                            <div *ngIf="log.appName"><span>التطبيق</span><span>{{ log.appName }}</span></div>
+                            <div *ngIf="log.externalUserId"><span>المستخدم الخارجي</span><span>{{ log.externalUserId }}</span></div>
+                            <div *ngIf="log.platformEmail"><span>البريد المنصة</span><span>{{ log.platformEmail }}</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+
+      <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="sidebarOpen = false"></div>
+    </div>
+  </ng-container>
+</ng-template>
