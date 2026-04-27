@@ -13,6 +13,8 @@
     "@angular/core": "^21.2.10",
     "@angular/forms": "^21.2.10",
     "@angular/platform-browser": "^21.2.10",
+    "@angular/platform-browser-dynamic": "^21.2.10",
+    "@angular/router": "^21.2.10",
     "postcss": "^8.5.12",
     "rxjs": "~7.8.0",
     "tslib": "^2.6.0",
