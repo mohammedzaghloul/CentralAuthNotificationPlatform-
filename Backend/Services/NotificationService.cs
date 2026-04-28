@@ -137,19 +137,33 @@ public sealed class NotificationService(INotificationRepository notificationRepo
 
     private static NotificationDto ToDto(Notification notification)
     {
-        var resetInfo = string.Equals(notification.Type, NotificationTypes.PasswordReset, StringComparison.Ordinal)
+        var isPasswordReset = string.Equals(notification.Type, NotificationTypes.PasswordReset, StringComparison.Ordinal);
+        var resetInfo = isPasswordReset
             ? TryReadResetMetadata(notification.MetadataJson)
             : new ResetNotificationMetadata(null, null, null, null);
 
         var actionLabel = string.IsNullOrWhiteSpace(resetInfo.ResetUrl)
             ? null
             : "فتح رابط الاسترجاع";
+        var sourceAppName = notification.SourceAppName ?? "منصة الدخول الموحد";
+        var title = notification.Title;
+        var message = notification.Message;
+
+        if (isPasswordReset)
+        {
+            var expiresText = resetInfo.ExpiresAt is null
+                ? string.Empty
+                : $" ينتهي الرابط في {resetInfo.ExpiresAt:yyyy-MM-dd HH:mm} UTC.";
+
+            title = $"طلب استرجاع كلمة المرور من {sourceAppName}";
+            message = $"تم إنشاء طلب استرجاع كلمة المرور من {sourceAppName}. افتح رابط الاسترجاع من هذا الإشعار لتعيين كلمة مرور جديدة.{expiresText}";
+        }
 
         return new NotificationDto(
             notification.Id,
             notification.Type,
-            notification.Title,
-            notification.Message,
+            title,
+            message,
             notification.SourceAppName,
             notification.IsRead,
             notification.CreatedAt,
