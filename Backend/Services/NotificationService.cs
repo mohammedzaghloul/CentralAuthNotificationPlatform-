@@ -20,15 +20,7 @@ public sealed class NotificationService(INotificationRepository notificationRepo
         var visibleNotifications = KeepLatestActiveResetNotifications(notifications);
 
         return new NotificationListResponse(
-            visibleNotifications.Select(notification => new NotificationDto(
-                notification.Id,
-                notification.Type,
-                notification.Title,
-                notification.Message,
-                notification.SourceAppName,
-                notification.IsRead,
-                notification.CreatedAt,
-                notification.ReadAt)).ToList(),
+            visibleNotifications.Select(ToDto).ToList(),
             visibleNotifications.Count(notification => !notification.IsRead));
     }
 
@@ -91,7 +83,7 @@ public sealed class NotificationService(INotificationRepository notificationRepo
     {
         if (string.IsNullOrWhiteSpace(metadataJson))
         {
-            return new ResetNotificationMetadata(null, null, null);
+            return new ResetNotificationMetadata(null, null, null, null);
         }
 
         try
@@ -102,6 +94,7 @@ public sealed class NotificationService(INotificationRepository notificationRepo
             DateTimeOffset? expiresAt = null;
             Guid? externalAppId = null;
             string? externalUserId = null;
+            string? resetUrl = null;
 
             if (root.TryGetProperty("expiresAt", out var expiresAtProperty) &&
                 expiresAtProperty.ValueKind == JsonValueKind.String &&
@@ -128,13 +121,42 @@ public sealed class NotificationService(INotificationRepository notificationRepo
                 externalUserId = externalEmailProperty.GetString();
             }
 
-            return new ResetNotificationMetadata(expiresAt, externalAppId, externalUserId);
+            if (root.TryGetProperty("resetUrl", out var resetUrlProperty) &&
+                resetUrlProperty.ValueKind == JsonValueKind.String)
+            {
+                resetUrl = resetUrlProperty.GetString();
+            }
+
+            return new ResetNotificationMetadata(expiresAt, externalAppId, externalUserId, resetUrl);
         }
         catch (JsonException)
         {
-            return new ResetNotificationMetadata(null, null, null);
+            return new ResetNotificationMetadata(null, null, null, null);
         }
     }
 
-    private sealed record ResetNotificationMetadata(DateTimeOffset? ExpiresAt, Guid? ExternalAppId, string? ExternalUserId);
+    private static NotificationDto ToDto(Notification notification)
+    {
+        var resetInfo = string.Equals(notification.Type, NotificationTypes.PasswordReset, StringComparison.Ordinal)
+            ? TryReadResetMetadata(notification.MetadataJson)
+            : new ResetNotificationMetadata(null, null, null, null);
+
+        var actionLabel = string.IsNullOrWhiteSpace(resetInfo.ResetUrl)
+            ? null
+            : "فتح رابط الاسترجاع";
+
+        return new NotificationDto(
+            notification.Id,
+            notification.Type,
+            notification.Title,
+            notification.Message,
+            notification.SourceAppName,
+            notification.IsRead,
+            notification.CreatedAt,
+            notification.ReadAt,
+            resetInfo.ResetUrl,
+            actionLabel);
+    }
+
+    private sealed record ResetNotificationMetadata(DateTimeOffset? ExpiresAt, Guid? ExternalAppId, string? ExternalUserId, string? ResetUrl);
 }

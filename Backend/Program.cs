@@ -456,9 +456,17 @@ static async Task SeedIdentityRolesAsync(WebApplication app)
         .Select(user => new
         {
             user.Id,
+            user.CreatedAt,
             HasOwnedApps = dbContext.ExternalApps.Any(appRecord => appRecord.OwnerUserId == user.Id)
         })
         .ToListAsync();
+
+    var hasAdmin = (await userManager.GetUsersInRoleAsync(PlatformRoles.Admin)).Count > 0;
+    var adminSeedCandidate = users
+        .Where(user => user.HasOwnedApps)
+        .OrderBy(user => user.CreatedAt)
+        .FirstOrDefault()
+        ?? users.OrderBy(user => user.CreatedAt).FirstOrDefault();
 
     foreach (var userInfo in users)
     {
@@ -469,11 +477,22 @@ static async Task SeedIdentityRolesAsync(WebApplication app)
         }
 
         var roles = await userManager.GetRolesAsync(user);
+        if (!hasAdmin && adminSeedCandidate?.Id == userInfo.Id)
+        {
+            if (!roles.Contains(PlatformRoles.Admin, StringComparer.OrdinalIgnoreCase))
+            {
+                await userManager.AddToRoleAsync(user, PlatformRoles.Admin);
+            }
+
+            hasAdmin = true;
+            continue;
+        }
+
         if (roles.Count > 0)
         {
             continue;
         }
 
-        await userManager.AddToRoleAsync(user, userInfo.HasOwnedApps ? PlatformRoles.Developer : PlatformRoles.User);
+        await userManager.AddToRoleAsync(user, PlatformRoles.User);
     }
 }

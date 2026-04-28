@@ -4,6 +4,7 @@ using CentralAuthNotificationPlatform.Dtos;
 using CentralAuthNotificationPlatform.Models;
 using CentralAuthNotificationPlatform.Options;
 using CentralAuthNotificationPlatform.Security;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -68,9 +69,9 @@ public sealed class AuthService(
             return null;
         }
 
-        var role = PlatformRoles.Normalize(request.Role);
+        var role = PlatformRoles.User;
         await userManager.AddToRoleAsync(user, role);
-        await signInManager.SignInAsync(user, isPersistent: false);
+        await signInManager.SignInAsync(user, CreatePersistentSessionProperties());
         return jwtTokenService.CreatePlatformToken(user, [role]);
     }
 
@@ -89,7 +90,7 @@ public sealed class AuthService(
         }
 
         var roles = await userManager.GetRolesAsync(user);
-        await signInManager.SignInAsync(user, isPersistent: false);
+        await signInManager.SignInAsync(user, CreatePersistentSessionProperties());
         return jwtTokenService.CreatePlatformToken(user, roles.Count == 0 ? [PlatformRoles.User] : roles.ToArray());
     }
 
@@ -102,6 +103,7 @@ public sealed class AuthService(
         }
 
         var roles = await userManager.GetRolesAsync(user);
+        await signInManager.SignInAsync(user, CreatePersistentSessionProperties());
         return jwtTokenService.CreatePlatformToken(user, roles.Count == 0 ? [PlatformRoles.User] : roles.ToArray());
     }
 
@@ -187,16 +189,17 @@ public sealed class AuthService(
             UserId = user.Id,
             Type = NotificationTypes.PasswordReset,
             Title = externalApp is null
-                ? "Password reset requested"
-                : $"Password reset requested by {externalApp.Name}",
-            Message = $"Password reset requested by {externalApp?.Name ?? "Central Auth"}. The reset link was sent to your registered email and expires at {expiresAt:yyyy-MM-dd HH:mm} UTC.",
+                ? "طلب استرجاع كلمة المرور"
+                : $"طلب استرجاع كلمة المرور من {externalApp.Name}",
+            Message = $"تم إنشاء طلب استرجاع كلمة المرور من {externalApp?.Name ?? "منصة الدخول الموحد"}. افتح رابط الاسترجاع من هذا الإشعار لتعيين كلمة مرور جديدة. ينتهي الرابط في {expiresAt:yyyy-MM-dd HH:mm} UTC.",
             SourceAppName = externalApp?.Name ?? "Central Auth",
             MetadataJson = JsonSerializer.Serialize(new
             {
                 expiresAt,
                 externalAppId = externalApp?.Id,
                 externalAppName = externalApp?.Name,
-                externalUserId
+                externalUserId,
+                resetUrl
             })
         }, cancellationToken);
 
@@ -475,6 +478,16 @@ public sealed class AuthService(
     private static string NormalizeExternalUserId(string externalUserId)
     {
         return externalUserId.Trim().ToUpperInvariant();
+    }
+
+    private static AuthenticationProperties CreatePersistentSessionProperties()
+    {
+        return new AuthenticationProperties
+        {
+            IsPersistent = true,
+            AllowRefresh = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14)
+        };
     }
 }
 

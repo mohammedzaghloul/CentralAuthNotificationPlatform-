@@ -23,16 +23,47 @@ declare global {
 @Injectable({ providedIn: 'root' })
 export class AuthHubService {
   private accessToken = '';
+  private readonly sessionStorageKey = 'central-auth-session';
   private readonly apiBaseUrl = (window.__AUTH_HUB_CONFIG__?.apiBaseUrl ?? '').replace(/\/+$/, '');
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {
+    const storedSession = this.getStoredSession();
+    this.accessToken = storedSession?.accessToken ?? '';
+  }
 
   setAccessToken(token: string): void {
     this.accessToken = token;
   }
 
+  setSession(session: AuthResponse): void {
+    this.accessToken = session.accessToken;
+    localStorage.setItem(this.sessionStorageKey, JSON.stringify(session));
+  }
+
+  getStoredSession(): AuthResponse | null {
+    const rawSession = localStorage.getItem(this.sessionStorageKey);
+    if (!rawSession) {
+      return null;
+    }
+
+    try {
+      const session = JSON.parse(rawSession) as AuthResponse;
+      const expiresAt = Date.parse(session.expiresAt);
+      if (!session.accessToken || Number.isNaN(expiresAt) || expiresAt <= Date.now() + 30_000) {
+        this.clearAccessToken();
+        return null;
+      }
+
+      return session;
+    } catch {
+      this.clearAccessToken();
+      return null;
+    }
+  }
+
   clearAccessToken(): void {
     this.accessToken = '';
+    localStorage.removeItem(this.sessionStorageKey);
   }
 
   getBaseUrl(): string {
@@ -43,12 +74,12 @@ export class AuthHubService {
     return this.request<AuthResponse>('POST', '/api/auth/login', { email, password }, false);
   }
 
-  register(email: string, displayName: string, password: string, role: 'User' | 'Developer'): Promise<AuthResponse> {
-    return this.request<AuthResponse>('POST', '/api/auth/register', { email, displayName, password, role }, false);
+  register(email: string, displayName: string, password: string): Promise<AuthResponse> {
+    return this.request<AuthResponse>('POST', '/api/auth/register', { email, displayName, password, role: 'User' }, false);
   }
 
   getSession(): Promise<AuthResponse> {
-    return this.request<AuthResponse>('GET', '/api/auth/session', undefined, false);
+    return this.request<AuthResponse>('GET', '/api/auth/session');
   }
 
   logout(): Promise<void> {

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CentralAuthNotificationPlatform.Controllers;
 
 [ApiController]
-[Authorize(Roles = PlatformRoles.Developer)]
+[Authorize(Roles = PlatformRoles.Admin)]
 [Route("api/external-apps")]
 public sealed class ExternalAppsController(IExternalAppService externalAppService) : ControllerBase
 {

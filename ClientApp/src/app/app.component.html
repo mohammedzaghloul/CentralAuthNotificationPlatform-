@@ -92,13 +92,6 @@
                   autocomplete="new-password" required [(ngModel)]="registerForm.password" placeholder="••••••••">
               </div>
             </div>
-            <div class="mb-4">
-              <label class="form-label small fw-bold" for="regRole">نوع الحساب</label>
-              <select id="regRole" class="form-select" name="role" [(ngModel)]="registerForm.role">
-                <option value="User">مستخدم عادي</option>
-                <option value="Developer">مطور (Developer)</option>
-              </select>
-            </div>
             <button class="btn btn-primary" type="submit" [disabled]="loading || regNgForm.invalid">
               <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
               <i class="fas fa-user-plus" *ngIf="!loading"></i>
@@ -176,8 +169,8 @@
             <span class="badge badge-soft-primary ms-auto" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
           </button>
           
-          <button class="nav-link" type="button" *ngIf="isDeveloper" (click)="setDashboardMode('developer'); sidebarOpen = false"
-            [class.active]="dashboardMode === 'developer'">
+          <button class="nav-link" type="button" *ngIf="isAdmin" (click)="setDashboardMode('admin'); sidebarOpen = false"
+            [class.active]="dashboardMode === 'admin'">
             <i class="fas fa-cube"></i>
             <span>إدارة الأنظمة المتصلة</span>
             <span class="badge badge-soft-primary ms-auto" *ngIf="externalApps.length > 0">{{ externalApps.length }}</span>
@@ -199,7 +192,7 @@
               <i class="fas fa-bars fa-lg"></i>
             </button>
             <h5 class="mb-0 fw-bold">
-              {{ dashboardMode === 'developer' ? 'لوحة التحكم التقنية' : 'مركز التنبيهات والرسائل' }}
+              {{ dashboardMode === 'admin' ? 'لوحة إدارة التطبيقات' : 'مركز التنبيهات والرسائل' }}
             </h5>
           </div>
 
@@ -276,8 +269,8 @@
                           <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted"><i class="far fa-clock me-1"></i> {{ item.createdAt | date:'medium' }}</small>
                             <div class="action-buttons gap-2 d-flex">
-                              <a *ngIf="resetUrl(item.message) as url" class="btn btn-primary btn-sm" [href]="url">فتح الرابط</a>
-                              <button *ngIf="!item.isRead" class="btn btn-light border btn-sm" (click)="markRead(item)">تحديد كمقروء</button>
+                              <a *ngIf="notificationActionUrl(item) as url" class="btn btn-primary btn-sm" [href]="url">{{ item.actionLabel || 'فتح رابط الاسترجاع' }}</a>
+                              <button *ngIf="!item.isRead" class="btn btn-light border btn-sm" (click)="markRead(item)">تعليم كمقروء</button>
                             </div>
                           </div>
                         </article>
@@ -316,8 +309,8 @@
               </div>
             </section>
 
-            <!-- Developer Management View -->
-            <section *ngIf="dashboardMode === 'developer' && isDeveloper">
+            <!-- Admin Management View -->
+            <section *ngIf="dashboardMode === 'admin' && isAdmin">
               <div class="row g-4">
                 <div class="col-12 col-xl-4">
                   <div class="card border-0 shadow-sm mb-4">

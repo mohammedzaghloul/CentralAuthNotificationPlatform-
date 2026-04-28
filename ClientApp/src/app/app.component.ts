@@ -15,8 +15,7 @@ import { AuthHubService } from './auth-hub.service';
 
 type AuthMode = 'login' | 'register';
 type AlertKind = 'success' | 'danger' | 'info' | 'warning';
-type DashboardMode = 'user' | 'developer';
-type PlatformRole = 'User' | 'Developer';
+type DashboardMode = 'user' | 'admin';
 
 @Component({
   selector: 'auth-root',
@@ -27,7 +26,7 @@ type PlatformRole = 'User' | 'Developer';
 })
 export class AppComponent implements OnInit {
   authMode: AuthMode = 'login';
-  dashboardMode: DashboardMode = window.location.pathname.includes('/developer') ? 'developer' : 'user';
+  dashboardMode: DashboardMode = window.location.pathname.includes('/admin') ? 'admin' : 'user';
   session: AuthResponse | null = null;
   alert: { kind: AlertKind; message: string } | null = null;
   loading = false;
@@ -39,11 +38,10 @@ export class AppComponent implements OnInit {
     password: ''
   };
 
-  registerForm: { displayName: string; email: string; password: string; role: PlatformRole } = {
+  registerForm = {
     displayName: '',
     email: '',
-    password: '',
-    role: 'User'
+    password: ''
   };
 
   appForm = {
@@ -81,8 +79,8 @@ export class AppComponent implements OnInit {
     return window.location.pathname.includes('/consent');
   }
 
-  get isDeveloper(): boolean {
-    return this.session?.roles?.includes('Developer') ?? false;
+  get isAdmin(): boolean {
+    return this.session?.roles?.includes('Admin') ?? false;
   }
 
   get unreadCount(): number {
@@ -106,8 +104,7 @@ export class AppComponent implements OnInit {
       this.api.register(
         this.registerForm.email,
         this.registerForm.displayName,
-        this.registerForm.password,
-        this.registerForm.role));
+        this.registerForm.password));
   }
 
   async forgotPassword(form: NgForm): Promise<void> {
@@ -153,7 +150,7 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    if (this.dashboardMode === 'developer' && !this.isDeveloper) {
+    if (this.dashboardMode === 'admin' && !this.isAdmin) {
       this.setDashboardMode('user');
     }
 
@@ -166,7 +163,7 @@ export class AppComponent implements OnInit {
       const links = await this.api.getUserLinks();
       this.userLinks = links;
 
-      if (this.isDeveloper) {
+      if (this.isAdmin) {
         const [apps, logs] = await Promise.all([
           this.api.getExternalApps(),
           this.api.getAuditLogs()
@@ -310,16 +307,20 @@ export class AppComponent implements OnInit {
     return message.replace(/https?:\/\/[^\s]+/, 'رابط إعادة التعيين متاح داخل هذا الإشعار.');
   }
 
+  notificationActionUrl(notification: NotificationItem): string | null {
+    return notification.actionUrl || this.resetUrl(notification.message);
+  }
+
   setDashboardMode(mode: DashboardMode): void {
-    if (mode === 'developer' && !this.isDeveloper) {
+    if (mode === 'admin' && !this.isAdmin) {
       this.dashboardMode = 'user';
       window.history.pushState({}, '', '/dashboard/');
-      this.setAlert('warning', 'لوحة المطور متاحة لحسابات المطورين فقط.');
+      this.setAlert('warning', 'لوحة إدارة التطبيقات متاحة لحساب المدير فقط.');
       return;
     }
 
     this.dashboardMode = mode;
-    const path = mode === 'developer' ? '/dashboard/developer' : '/dashboard/';
+    const path = mode === 'admin' ? '/dashboard/admin' : '/dashboard/';
     window.history.pushState({}, '', path);
   }
 
@@ -343,8 +344,8 @@ export class AppComponent implements OnInit {
         ...response,
         roles: response.roles ?? ['User']
       };
-      this.dashboardMode = this.isDeveloper && window.location.pathname.includes('/developer') ? 'developer' : 'user';
-      this.api.setAccessToken(response.accessToken);
+      this.dashboardMode = this.isAdmin && window.location.pathname.includes('/admin') ? 'admin' : 'user';
+      this.api.setSession(this.session);
 
       const returnUrl = this.getSafeReturnUrl();
       if (returnUrl) {
@@ -366,16 +367,25 @@ export class AppComponent implements OnInit {
       return;
     }
 
+    const returnUrl = this.getSafeReturnUrl();
+    const storedSession = this.api.getStoredSession();
+    if (storedSession) {
+      this.session = {
+        ...storedSession,
+        roles: storedSession.roles ?? ['User']
+      };
+      this.dashboardMode = this.isAdmin && window.location.pathname.includes('/admin') ? 'admin' : 'user';
+    }
+
     try {
       const response = await this.api.getSession();
       this.session = {
         ...response,
         roles: response.roles ?? ['User']
       };
-      this.dashboardMode = this.isDeveloper && window.location.pathname.includes('/developer') ? 'developer' : 'user';
-      this.api.setAccessToken(response.accessToken);
+      this.dashboardMode = this.isAdmin && window.location.pathname.includes('/admin') ? 'admin' : 'user';
+      this.api.setSession(this.session);
 
-      const returnUrl = this.getSafeReturnUrl();
       if (returnUrl) {
         window.location.assign(returnUrl);
         return;
@@ -384,9 +394,11 @@ export class AppComponent implements OnInit {
       await this.refreshAll();
     } catch (error) {
       console.error('Session restore error:', error);
-      this.api.clearAccessToken();
-      this.session = null;
-      if (this.dashboardMode === 'developer') {
+      if (!this.session) {
+        this.api.clearAccessToken();
+        this.session = null;
+      }
+      if (this.dashboardMode === 'admin' && !this.isAdmin) {
         this.dashboardMode = 'user';
       }
     }

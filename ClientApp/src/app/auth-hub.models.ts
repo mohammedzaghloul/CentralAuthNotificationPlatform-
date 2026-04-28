@@ -21,6 +21,8 @@ export interface NotificationItem {
   isRead: boolean;
   createdAt: string;
   readAt?: string | null;
+  actionUrl?: string | null;
+  actionLabel?: string | null;
 }
 
 export interface ExternalApp {

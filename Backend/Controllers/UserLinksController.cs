@@ -20,7 +20,7 @@ public sealed class UserLinksController(IUserLinkService userLinkService) : Cont
     }
 
     [HttpPost]
-    [Authorize(Roles = PlatformRoles.Developer)]
+    [Authorize(Roles = PlatformRoles.Admin)]
     [ProducesResponseType(typeof(UserLinkDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]

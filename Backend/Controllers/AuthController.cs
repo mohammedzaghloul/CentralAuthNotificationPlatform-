@@ -49,7 +49,7 @@ public sealed class AuthController(
     }
 
     [HttpGet("session")]
-    [Authorize(AuthenticationSchemes = "Identity.Application")]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Session(CancellationToken cancellationToken)

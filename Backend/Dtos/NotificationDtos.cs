@@ -8,7 +8,9 @@ public sealed record NotificationDto(
     string? SourceAppName,
     bool IsRead,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? ReadAt);
+    DateTimeOffset? ReadAt,
+    string? ActionUrl,
+    string? ActionLabel);
 
 public sealed record NotificationListResponse(
     IReadOnlyList<NotificationDto> Items,
