@@ -426,9 +426,14 @@ export class AppComponent implements OnInit {
 
     try {
       const resolvedUrl = new URL(candidate, window.location.origin);
-      const isLocalHost = resolvedUrl.hostname === window.location.hostname;
+      const allowedOrigins = new Set([window.location.origin]);
+      const apiBaseUrl = this.api.getBaseUrl();
+      if (apiBaseUrl) {
+        allowedOrigins.add(new URL(apiBaseUrl).origin);
+      }
+
       const isAuthorizeRoute = resolvedUrl.pathname.startsWith('/connect/');
-      return isLocalHost && isAuthorizeRoute ? resolvedUrl.toString() : null;
+      return allowedOrigins.has(resolvedUrl.origin) && isAuthorizeRoute ? resolvedUrl.toString() : null;
     } catch {
       return null;
     }

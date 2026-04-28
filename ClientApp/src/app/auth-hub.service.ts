@@ -35,6 +35,10 @@ export class AuthHubService {
     this.accessToken = '';
   }
 
+  getBaseUrl(): string {
+    return this.apiBaseUrl;
+  }
+
   login(email: string, password: string): Promise<AuthResponse> {
     return this.request<AuthResponse>('POST', '/api/auth/login', { email, password }, false);
   }

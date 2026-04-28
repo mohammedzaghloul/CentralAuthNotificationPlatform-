@@ -14,9 +14,11 @@ namespace CentralAuthNotificationPlatform.Controllers;
 [Route("connect")]
 public sealed class ConnectController(
     IOAuthService oauthService,
-    IWebHostEnvironment environment) : ControllerBase
+    IWebHostEnvironment environment,
+    IConfiguration configuration) : ControllerBase
 {
     private const string IdentityApplicationScheme = "Identity.Application";
+    private const string DefaultProductionDashboardUrl = "https://resplendent-cooperation-production-eeb8.up.railway.app/dashboard/";
 
     [HttpGet("authorize")]
     [EnableRateLimiting("auth")]
@@ -155,7 +157,74 @@ public sealed class ConnectController(
             return $"http://localhost:4300/dashboard/?returnUrl={Uri.EscapeDataString(returnUrl)}";
         }
 
-        return $"/dashboard.html?returnUrl={Uri.EscapeDataString(returnUrl)}";
+        var dashboardUrl = ResolveDashboardUrl();
+        return $"{dashboardUrl}?returnUrl={Uri.EscapeDataString(returnUrl)}";
+    }
+
+    private string ResolveDashboardUrl()
+    {
+        var configuredUrls = new[]
+        {
+            configuration["AUTH_HUB_DASHBOARD_URL"],
+            configuration["DASHBOARD_URL"],
+            configuration["CENTRAL_AUTH_PORTAL_URL"],
+            configuration["CENTRAL_AUTH_FRONTEND_URL"],
+            configuration["RAILWAY_SERVICE_RESPLENDENT_COOPERATION_URL"],
+            configuration["FRONTEND_URL"],
+            configuration["CLIENT_APP_URL"]
+        };
+
+        foreach (var configuredUrl in configuredUrls)
+        {
+            var dashboardUrl = NormalizeDashboardUrl(configuredUrl);
+            if (!string.IsNullOrWhiteSpace(dashboardUrl))
+            {
+                return dashboardUrl;
+            }
+        }
+
+        var dashboardOrigin = configuration["ALLOWED_ORIGINS"]
+            ?.Split([',', ';'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault(origin =>
+                origin.Contains("resplendent", StringComparison.OrdinalIgnoreCase)
+                || origin.Contains("dashboard", StringComparison.OrdinalIgnoreCase));
+
+        return NormalizeDashboardUrl(dashboardOrigin) ?? DefaultProductionDashboardUrl;
+    }
+
+    private static string? NormalizeDashboardUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)
+            || !Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+
+        var builder = new UriBuilder(uri)
+        {
+            Query = string.Empty,
+            Fragment = string.Empty
+        };
+
+        var path = builder.Path.TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(path) || path == "/")
+        {
+            builder.Path = "/dashboard/";
+        }
+        else if (path.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.Path = path;
+        }
+        else if (path.EndsWith("/dashboard", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.Path = $"{path}/";
+        }
+        else
+        {
+            builder.Path = $"{path}/dashboard/";
+        }
+
+        return builder.Uri.ToString().TrimEnd('?');
     }
 
     private static string RenderConsentPage(Dtos.OAuthAuthorizationRequestDetails request)
