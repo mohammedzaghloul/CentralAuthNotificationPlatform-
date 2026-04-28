@@ -10,6 +10,14 @@ server {
         return 302 /dashboard/;
     }
 
+    location = /dashboard {
+        return 302 /dashboard/;
+    }
+
+    location ~ ^/dashboard/(?<asset>.+\.(?:css|js|map|json|txt|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot))$ {
+        try_files /$asset =404;
+    }
+
     location /dashboard/ {
         try_files $uri $uri/ /index.html;
     }
