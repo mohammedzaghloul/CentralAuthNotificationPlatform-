@@ -1,10 +1,10 @@
-using CentralAuthNotificationPlatform.Dtos;
-using CentralAuthNotificationPlatform.Extensions;
-using CentralAuthNotificationPlatform.Services;
+using CentralAuthNotificationPlatform.BLL.Dtos;
+using CentralAuthNotificationPlatform.PL.Extensions;
+using CentralAuthNotificationPlatform.BLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CentralAuthNotificationPlatform.Controllers;
+namespace CentralAuthNotificationPlatform.PL.Controllers;
 
 [ApiController]
 [Authorize]

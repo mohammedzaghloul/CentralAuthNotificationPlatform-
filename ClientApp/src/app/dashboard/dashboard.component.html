@@ -1,0 +1,337 @@
+<ng-container *ngIf="!session; else dashboardLayout">
+  <main class="auth-viewport" dir="rtl">
+    <div class="split-layout">
+      <!-- Visual Side (Left) -->
+      <div class="visual-pane">
+        <div class="visual-content animate-fade-up">
+          <div class="premium-badge">منصة NEXTGEN الذكية</div>
+          <h1 class="hero-title">بوابة الدخول <br><span class="gradient-text">الموحد</span></h1>
+          <p class="hero-subtitle">تحكم كامل في هويتك الرقمية، إشعارات فورية، ووصول آمن لجميع الأنظمة المدرسية بلمسة واحدة.</p>
+          
+          <div class="feature-grid">
+            <div class="feature-item">
+              <i class="fas fa-shield-check"></i>
+              <span>أمان فائق</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-bolt"></i>
+              <span>سرعة الوصول</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-fingerprint"></i>
+              <span>هوية مركزية</span>
+            </div>
+          </div>
+        </div>
+        <div class="abstract-shape shape-1"></div>
+        <div class="abstract-shape shape-2"></div>
+      </div>
+
+      <!-- Form Side (Right) -->
+      <div class="form-pane">
+        <div class="form-container animate-slide-right">
+          <div class="brand-header">
+            <div class="brand-logo">IDP</div>
+            <div>
+              <h2 class="brand-title">هوية المدرسة</h2>
+              <p class="brand-tagline">نظام إدارة الوصول المركزي</p>
+            </div>
+          </div>
+
+          <div *ngIf="alert" class="premium-toast animate-slide-down" [class.toast-danger]="alert.kind === 'danger'" [class.toast-success]="alert.kind === 'success'">
+            <div class="toast-icon">
+              <i class="fas" [class.fa-envelope-open-text]="alert.kind === 'danger'" [class.fa-envelope-open]="alert.kind === 'success'"></i>
+            </div>
+            <div class="toast-content">
+              <span class="toast-title">{{ alert.kind === 'danger' ? 'إشعار جديد' : 'رسالة نظام' }}</span>
+              <span class="toast-msg">{{ alert.message }}</span>
+            </div>
+            <button class="toast-close" (click)="alert = null"><i class="fas fa-times"></i></button>
+          </div>
+
+          <div class="auth-card-premium">
+            <div class="tab-switcher">
+              <button [class.active]="authMode === 'login'" (click)="authMode = 'login'">تسجيل الدخول</button>
+              <button [class.active]="authMode === 'register'" (click)="authMode = 'register'">إنشاء حساب</button>
+            </div>
+
+            <form *ngIf="authMode === 'login'" (ngSubmit)="login(loginNgForm)" #loginNgForm="ngForm" class="auth-form">
+              <div class="field-group">
+                <label>البريد الإلكتروني</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-envelope field-icon"></i>
+                  <input type="email" name="email" required [(ngModel)]="loginForm.email" placeholder="أدخل بريدك الإلكتروني" class="input-premium ltr-input">
+                </div>
+              </div>
+
+              <div class="field-group">
+                <div class="d-flex justify-content-between">
+                  <label>كلمة المرور</label>
+                  <button type="button" class="link-btn" (click)="showForgotPassword = true">نسيت كلمة المرور؟</button>
+                </div>
+                <div class="input-wrapper">
+                  <i class="fas fa-lock field-icon"></i>
+                  <input [type]="showPassword ? 'text' : 'password'" name="password" required [(ngModel)]="loginForm.password" placeholder="••••••••" class="input-premium ltr-input">
+                  <button type="button" class="password-toggle" (click)="showPassword = !showPassword" [title]="showPassword ? 'إخفاء' : 'إظهار'">
+                    <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button class="btn-premium w-100 mt-4" type="submit" [disabled]="loading || loginNgForm.invalid">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+                {{ loading ? 'جاري التحقق...' : 'دخول للمنصة' }}
+                <i class="fas fa-arrow-left" *ngIf="!loading"></i>
+              </button>
+            </form>
+
+            <form *ngIf="authMode === 'register'" (ngSubmit)="register(regNgForm)" #regNgForm="ngForm" class="auth-form">
+              <div class="field-group">
+                <label>الاسم الكامل</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-user field-icon"></i>
+                  <input type="text" name="displayName" required [(ngModel)]="registerForm.displayName" placeholder="مثال: محمد أحمد" class="input-premium">
+                </div>
+              </div>
+              <div class="field-group">
+                <label>البريد الإلكتروني</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-envelope field-icon"></i>
+                  <input type="email" name="email" required [(ngModel)]="registerForm.email" placeholder="example@school.com" class="input-premium ltr-input">
+                </div>
+              </div>
+              <div class="field-group">
+                <label>كلمة المرور</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-lock field-icon"></i>
+                  <input [type]="showPassword ? 'text' : 'password'" name="password" required [(ngModel)]="registerForm.password" placeholder="••••••••" class="input-premium ltr-input">
+                  <button type="button" class="password-toggle" (click)="showPassword = !showPassword" [title]="showPassword ? 'إخفاء' : 'إظهار'">
+                    <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+                  </button>
+                </div>
+              </div>
+              <button class="btn-premium w-100 mt-4" type="submit" [disabled]="loading || regNgForm.invalid">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+                {{ loading ? 'جاري الإنشاء...' : 'بدء الاستخدام مجاناً' }}
+              </button>
+            </form>
+          </div>
+
+          <footer class="auth-footer-simple">
+            &copy; 2026 جميع الحقوق محفوظة لمنصة NEXTGEN
+          </footer>
+        </div>
+      </div>
+    </div>
+  </main>
+</ng-container>
+
+<ng-template #dashboardLayout>
+  <!-- Keep existing dashboard layout but apply new styles -->
+  <div class="app-shell" [class.sidebar-open]="sidebarOpen" dir="rtl">
+    <!-- Sidebar -->
+    <aside class="app-sidebar shadow-premium">
+      <div class="sidebar-brand">
+        <span class="brand-badge-premium">IDP</span>
+        <span class="brand-text-premium">هوية المدرسة</span>
+      </div>
+
+      <div class="user-profile-card">
+        <div class="avatar-glow">{{ session?.displayName?.slice(0, 1) }}</div>
+        <div class="profile-meta">
+          <h4 class="text-truncate">{{ session?.displayName }}</h4>
+          <p class="text-truncate">{{ session?.email }}</p>
+        </div>
+      </div>
+
+      <nav class="premium-nav">
+        <button class="nav-btn" (click)="setDashboardMode('user')" [class.active]="dashboardMode === 'user'">
+          <i class="fas fa-th-large"></i>
+          <span>الرئيسية</span>
+        </button>
+        <button class="nav-btn" *ngIf="isAdmin" (click)="setDashboardMode('admin')" [class.active]="dashboardMode === 'admin'">
+          <i class="fas fa-layer-group"></i>
+          <span>إدارة الأنظمة</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      
+      <button class="logout-btn" (click)="signOut()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>تسجيل الخروج</span>
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content-wrapper">
+      <header class="main-header">
+        <div class="d-flex align-items-center gap-3">
+          <button class="menu-trigger d-md-none" (click)="sidebarOpen = !sidebarOpen">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h2 class="page-title">{{ dashboardMode === 'admin' ? 'إدارة الأنظمة المتصلة' : 'مركز التنبيهات والرسائل' }}</h2>
+        </div>
+        <button class="refresh-pill" (click)="refreshAll()" [disabled]="refreshing">
+          <i class="fas fa-sync-alt" [class.fa-spin]="refreshing"></i>
+          <span>تحديث</span>
+        </button>
+      </header>
+
+      <main class="dashboard-viewport">
+        <div class="container-premium">
+          <div *ngIf="alert" class="premium-toast animate-slide-down" [class.toast-danger]="alert.kind === 'danger'" [class.toast-success]="alert.kind === 'success'">
+            <div class="toast-icon">
+              <i class="fas" [class.fa-envelope-open-text]="alert.kind === 'danger'" [class.fa-envelope-open]="alert.kind === 'success'"></i>
+            </div>
+            <div class="toast-content">
+              <span class="toast-title">{{ alert.kind === 'danger' ? 'إشعار جديد' : 'رسالة نظام' }}</span>
+              <span class="toast-msg">{{ alert.message }}</span>
+            </div>
+            <button class="toast-close" (click)="alert = null"><i class="fas fa-times"></i></button>
+          </div>
+
+          <!-- User View -->
+          <div class="view-animate" *ngIf="dashboardMode === 'user'">
+            <div class="stats-row">
+              <div class="stat-card blue">
+                <div class="stat-icon"><i class="fas fa-bell"></i></div>
+                <div class="stat-data">
+                  <span class="stat-value">{{ notifications.length }}</span>
+                  <span class="stat-label">الإشعارات</span>
+                </div>
+              </div>
+              <div class="stat-card orange">
+                <div class="stat-icon"><i class="fas fa-envelope-open"></i></div>
+                <div class="stat-data">
+                  <span class="stat-value">{{ unreadCount }}</span>
+                  <span class="stat-label">غير مقروء</span>
+                </div>
+              </div>
+              <div class="stat-card green">
+                <div class="stat-icon"><i class="fas fa-link"></i></div>
+                <div class="stat-data">
+                  <span class="stat-value">{{ userLinks.length }}</span>
+                  <span class="stat-label">تطبيقات متصلة</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-grid">
+              <!-- Notifications -->
+              <div class="grid-col-8">
+                <div class="premium-card">
+                  <div class="card-head">
+                    <h3>أحدث التنبيهات</h3>
+                  </div>
+                  <div class="card-body p-0">
+                    <div *ngIf="notifications.length === 0" class="empty-placeholder">
+                      <i class="fas fa-inbox"></i>
+                      <p>لا يوجد تنبيهات جديدة حالياً</p>
+                    </div>
+                    <div class="notification-list" *ngIf="notifications.length > 0">
+                      <div class="notif-item" *ngFor="let item of notifications" [class.unread]="!item.isRead">
+                        <div class="notif-content">
+                          <div class="d-flex justify-content-between">
+                            <h5 class="notif-title">{{ item.title }}</h5>
+                            <span class="notif-time">{{ item.createdAt | date:'shortTime' }}</span>
+                          </div>
+                          <p class="notif-msg">{{ item.message }}</p>
+                          <div class="notif-actions">
+                            <button *ngIf="!item.isRead" (click)="markRead(item)" class="action-link">تعليم كمقروء</button>
+                            <a *ngIf="notificationActionUrl(item) as url" [href]="url" class="btn-action">{{ item.actionLabel || 'عرض التفاصيل' }}</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Linked Apps -->
+              <div class="grid-col-4">
+                <div class="premium-card">
+                  <div class="card-head">
+                    <h3>التطبيقات المتصلة</h3>
+                  </div>
+                  <div class="card-body">
+                    <div *ngIf="userLinks.length === 0" class="empty-placeholder-sm">
+                      <p>لا توجد روابط نشطة</p>
+                    </div>
+                    <div class="links-stack">
+                      <div class="link-pill" *ngFor="let link of userLinks">
+                        <div class="link-info">
+                          <strong>{{ link.externalAppName }}</strong>
+                          <small>{{ link.externalUserId }}</small>
+                        </div>
+                        <button class="unlink-btn" (click)="unlinkUserLink(link)"><i class="fas fa-times"></i></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin View -->
+          <div class="view-animate" *ngIf="dashboardMode === 'admin' && isAdmin">
+             <!-- Admin implementation follows similar premium pattern -->
+             <div class="dashboard-grid">
+                <div class="grid-col-4">
+                  <div class="premium-card">
+                    <div class="card-head"><h3>إضافة نظام جديد</h3></div>
+                    <div class="card-body">
+                      <form (ngSubmit)="createExternalApp()" #appNgForm="ngForm" class="premium-form">
+                        <div class="field-group">
+                          <label>اسم النظام</label>
+                          <input class="input-premium" name="name" type="text" required [(ngModel)]="appForm.name" placeholder="School Management">
+                        </div>
+                        <div class="field-group">
+                          <label>الدومين</label>
+                          <input class="input-premium" name="domain" type="text" required [(ngModel)]="appForm.domain" placeholder="example.com">
+                        </div>
+                        <div class="field-group">
+                          <label>Callback URL</label>
+                          <input class="input-premium" name="redirectUri" type="url" required [(ngModel)]="appForm.redirectUri" placeholder="https://example.com/callback">
+                        </div>
+                        <button class="btn-premium w-100" type="submit" [disabled]="loading || appNgForm.invalid">حفظ بيانات النظام</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                <div class="grid-col-8">
+                  <div class="premium-card">
+                    <div class="card-head"><h3>الأنظمة المسجلة</h3></div>
+                    <div class="card-body p-0">
+                       <div class="app-table-responsive">
+                          <table class="premium-table">
+                             <thead>
+                                <tr>
+                                   <th>النظام</th>
+                                   <th>الدومين</th>
+                                   <th>الحالة</th>
+                                   <th>إجراءات</th>
+                                </tr>
+                             </thead>
+                             <tbody>
+                                <tr *ngFor="let app of externalApps">
+                                   <td><strong>{{ app.name }}</strong></td>
+                                   <td><code>{{ app.domain }}</code></td>
+                                   <td><span class="status-pill active">نشط</span></td>
+                                   <td>
+                                      <button class="icon-btn" (click)="regenerateApiKey(app)"><i class="fas fa-key"></i></button>
+                                   </td>
+                                </tr>
+                             </tbody>
+                          </table>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+             </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</ng-template>

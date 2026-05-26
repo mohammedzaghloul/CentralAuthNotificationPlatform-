@@ -5,6 +5,7 @@ export interface AuthResponse {
   roles: string[];
   accessToken: string;
   expiresAt: string;
+  recoveryCode?: string | null;
 }
 
 export interface NotificationListResponse {

@@ -16,6 +16,8 @@ declare global {
   interface Window {
     __AUTH_HUB_CONFIG__?: {
       apiBaseUrl?: string;
+      oauthClientId?: string;
+      oauthScope?: string;
     };
   }
 }

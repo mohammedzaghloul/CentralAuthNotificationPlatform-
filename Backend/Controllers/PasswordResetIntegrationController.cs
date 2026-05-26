@@ -1,11 +1,11 @@
-using CentralAuthNotificationPlatform.Dtos;
-using CentralAuthNotificationPlatform.Middleware;
-using CentralAuthNotificationPlatform.Services;
+using CentralAuthNotificationPlatform.BLL.Dtos;
+using CentralAuthNotificationPlatform.PL.Middleware;
+using CentralAuthNotificationPlatform.BLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-namespace CentralAuthNotificationPlatform.Controllers;
+namespace CentralAuthNotificationPlatform.PL.Controllers;
 
 [ApiController]
 [Route("api/integration")]

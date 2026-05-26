@@ -1,14 +1,14 @@
-using CentralAuthNotificationPlatform.Dtos;
-using CentralAuthNotificationPlatform.Extensions;
-using CentralAuthNotificationPlatform.Models;
-using CentralAuthNotificationPlatform.Services;
+using CentralAuthNotificationPlatform.BLL.Dtos;
+using CentralAuthNotificationPlatform.PL.Extensions;
+using CentralAuthNotificationPlatform.DAL.Models;
+using CentralAuthNotificationPlatform.BLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CentralAuthNotificationPlatform.Controllers;
+namespace CentralAuthNotificationPlatform.PL.Controllers;
 
 [ApiController]
-[Authorize(Roles = PlatformRoles.Admin)]
+[Authorize(Roles = PlatformRoles.Admin + "," + PlatformRoles.Developer)]
 [Route("api/external-apps")]
 public sealed class ExternalAppsController(IExternalAppService externalAppService) : ControllerBase
 {

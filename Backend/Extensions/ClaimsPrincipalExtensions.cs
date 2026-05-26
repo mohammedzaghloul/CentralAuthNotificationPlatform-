@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace CentralAuthNotificationPlatform.Extensions;
+namespace CentralAuthNotificationPlatform.PL.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {

@@ -1,12 +1,14 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.RateLimiting;
-using CentralAuthNotificationPlatform.Data;
-using CentralAuthNotificationPlatform.Middleware;
-using CentralAuthNotificationPlatform.Models;
-using CentralAuthNotificationPlatform.Options;
-using CentralAuthNotificationPlatform.Repositories;
-using CentralAuthNotificationPlatform.Services;
+using CentralAuthNotificationPlatform.DAL.Data;
+using CentralAuthNotificationPlatform.DAL.Models;
+using CentralAuthNotificationPlatform.DAL.Repositories;
+using CentralAuthNotificationPlatform.BLL.Services;
+using CentralAuthNotificationPlatform.BLL.Dtos;
+using CentralAuthNotificationPlatform.BLL.Options;
+using CentralAuthNotificationPlatform.PL.Middleware;
+using CentralAuthNotificationPlatform.PL.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -39,7 +41,17 @@ builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp")
 ValidateStartupConfiguration(builder.Environment, jwtOptions, smtpOptions, connectionString);
 
 builder.Services.AddDbContext<AuthHubDbContext>(options =>
-    options.UseSqlServer(connectionString!));
+{
+    options.UseSqlServer(connectionString!);
+    options.UseOpenIddict();
+});
+
+builder.Services.AddOpenIddict()
+    .AddCore(options =>
+    {
+        options.UseEntityFrameworkCore()
+            .UseDbContext<AuthHubDbContext>();
+    });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
     {
@@ -86,7 +98,9 @@ builder.Services.AddAuthentication(options =>
             ValidIssuer = jwtOptions.Issuer,
             ValidAudience = jwtOptions.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
-            ClockSkew = TimeSpan.FromSeconds(30)
+            ClockSkew = TimeSpan.FromSeconds(30),
+            RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+            NameClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
         };
 });
 
@@ -109,7 +123,7 @@ builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IAppEmailSender, SmtpEmailSender>();
 
-builder.Services.AddControllers()
+builder.Services.AddControllersWithViews()
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -157,9 +171,9 @@ builder.Services.AddRateLimiter(options =>
         RateLimitPartition.GetFixedWindowLimiter(GetRateLimitPartitionKey(context, includeApiKey: false), _ =>
             new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
+                PermitLimit = 100,
                 Window = TimeSpan.FromMinutes(15),
-                QueueLimit = 0,
+                QueueLimit = 10,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst
             }));
 
@@ -167,9 +181,9 @@ builder.Services.AddRateLimiter(options =>
         RateLimitPartition.GetFixedWindowLimiter(GetRateLimitPartitionKey(context, includeApiKey: true), _ =>
             new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 30,
+                PermitLimit = 100,
                 Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
+                QueueLimit = 10,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst
             }));
 
@@ -177,9 +191,9 @@ builder.Services.AddRateLimiter(options =>
         RateLimitPartition.GetFixedWindowLimiter(GetRateLimitPartitionKey(context, includeApiKey: true), _ =>
             new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 1,
+                PermitLimit = 10,
                 Window = TimeSpan.FromSeconds(60),
-                QueueLimit = 0,
+                QueueLimit = 2,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst
             }));
 });
@@ -198,11 +212,12 @@ app.Use(async (context, next) =>
     context.Response.Headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     context.Response.Headers.TryAdd(
         "Content-Security-Policy",
-        "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline'; " +
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-        "font-src 'self' https://fonts.gstatic.com data:; " +
-        "connect-src 'self'; " +
+        "default-src 'self' https:; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; " +
+        "style-src 'self' 'unsafe-inline' https:; " +
+        "font-src 'self' https: data:; " +
+        "connect-src 'self' https: http://localhost:4300 http://localhost:4200; " +
+        "img-src 'self' https: data:; " +
         "object-src 'none'; " +
         "frame-ancestors 'none'; " +
         "base-uri 'self'");
@@ -254,6 +269,9 @@ app.MapGet("/health", async (AuthHubDbContext dbContext, CancellationToken cance
         : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
 }).AllowAnonymous();
 app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
@@ -438,6 +456,7 @@ static string BuildDashboardRedirectUrl(HttpContext context, string? path)
 
 static async Task SeedIdentityRolesAsync(WebApplication app)
 {
+    const string defaultAdminEmail = "mohammedzaghloul0123@gmail.com";
     using var scope = app.Services.CreateScope();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -448,6 +467,19 @@ static async Task SeedIdentityRolesAsync(WebApplication app)
         if (!await roleManager.RoleExistsAsync(role))
         {
             await roleManager.CreateAsync(new IdentityRole<Guid>(role));
+        }
+    }
+
+    var configuredAdminEmail = app.Configuration["ADMIN_EMAIL"] ?? defaultAdminEmail;
+    var configuredAdmin = await userManager.FindByEmailAsync(configuredAdminEmail);
+    if (configuredAdmin is not null)
+    {
+        foreach (var role in new[] { PlatformRoles.Admin, PlatformRoles.Developer })
+        {
+            if (!await userManager.IsInRoleAsync(configuredAdmin, role))
+            {
+                await userManager.AddToRoleAsync(configuredAdmin, role);
+            }
         }
     }
 
@@ -477,6 +509,20 @@ static async Task SeedIdentityRolesAsync(WebApplication app)
         }
 
         var roles = await userManager.GetRolesAsync(user);
+        if (string.Equals(user.Email, configuredAdminEmail, StringComparison.OrdinalIgnoreCase))
+        {
+            foreach (var role in new[] { PlatformRoles.Admin, PlatformRoles.Developer })
+            {
+                if (!roles.Contains(role, StringComparer.OrdinalIgnoreCase))
+                {
+                    await userManager.AddToRoleAsync(user, role);
+                }
+            }
+
+            hasAdmin = true;
+            continue;
+        }
+
         if (!hasAdmin && adminSeedCandidate?.Id == userInfo.Id)
         {
             if (!roles.Contains(PlatformRoles.Admin, StringComparer.OrdinalIgnoreCase))

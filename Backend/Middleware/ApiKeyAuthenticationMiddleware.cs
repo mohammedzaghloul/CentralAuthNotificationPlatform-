@@ -1,7 +1,7 @@
-using CentralAuthNotificationPlatform.Models;
-using CentralAuthNotificationPlatform.Services;
+using CentralAuthNotificationPlatform.DAL.Models;
+using CentralAuthNotificationPlatform.BLL.Services;
 
-namespace CentralAuthNotificationPlatform.Middleware;
+namespace CentralAuthNotificationPlatform.PL.Middleware;
 
 public sealed class ApiKeyAuthenticationMiddleware(RequestDelegate next)
 {
